@@ -1389,6 +1389,7 @@ class GroupBy(BaseGroupBy[NDFrameT]):
         func: Callable,
         dtype_mapping: dict[np.dtype, Any],
         engine_kwargs: dict[str, bool] | None,
+        skipna: bool = True,
         **aggregator_kwargs,
     ):
         """
@@ -1407,6 +1408,7 @@ class GroupBy(BaseGroupBy[NDFrameT]):
             func,
             dtype_mapping,
             True,  # is_grouped_kernel
+            skipna=skipna,
             **get_jit_arguments(engine_kwargs),
         )
         # Pass group ids to kernel directly if it can handle it
@@ -1751,6 +1753,7 @@ class GroupBy(BaseGroupBy[NDFrameT]):
         numeric_only: bool = False,
         min_count: int = -1,
         *,
+        skipna: bool = True,
         alias: str,
         npfunc: Callable | None = None,
         **kwargs,
@@ -1758,6 +1761,7 @@ class GroupBy(BaseGroupBy[NDFrameT]):
         result = self._cython_agg_general(
             how=alias,
             alt=npfunc,
+            skipna=skipna,
             numeric_only=numeric_only,
             min_count=min_count,
             **kwargs,
@@ -1810,6 +1814,7 @@ class GroupBy(BaseGroupBy[NDFrameT]):
     def _cython_agg_general(
         self,
         how: str,
+        skipna: bool = True,
         alt: Callable | None = None,
         numeric_only: bool = False,
         min_count: int = -1,
@@ -1826,6 +1831,7 @@ class GroupBy(BaseGroupBy[NDFrameT]):
                     "aggregate",
                     values,
                     how,
+                    skipna=skipna,
                     axis=data.ndim - 1,
                     min_count=min_count,
                     **kwargs,
@@ -2984,6 +2990,7 @@ class GroupBy(BaseGroupBy[NDFrameT]):
         self,
         numeric_only: bool = False,
         min_count: int = 0,
+        skipna: bool = True,
         engine: Literal["cython", "numba"] | None = None,
         engine_kwargs: dict[str, bool] | None = None,
     ):
@@ -2995,6 +3002,7 @@ class GroupBy(BaseGroupBy[NDFrameT]):
                 executor.default_dtype_mapping,
                 engine_kwargs,
                 min_periods=min_count,
+                skipna=skipna,
             )
         else:
             # If we are grouping on categoricals we want unobserved categories to
@@ -3004,6 +3012,7 @@ class GroupBy(BaseGroupBy[NDFrameT]):
                 result = self._agg_general(
                     numeric_only=numeric_only,
                     min_count=min_count,
+                    skipna=skipna,
                     alias="sum",
                     npfunc=np.sum,
                 )

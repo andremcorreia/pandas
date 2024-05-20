@@ -165,6 +165,7 @@ def grouped_kahan_sum(
     result_dtype: np.dtype,
     labels: npt.NDArray[np.intp],
     ngroups: int,
+    skipna: bool = True,
 ) -> tuple[
     np.ndarray, npt.NDArray[np.int64], np.ndarray, npt.NDArray[np.int64], np.ndarray
 ]:
@@ -209,6 +210,12 @@ def grouped_kahan_sum(
         prev_vals[lab] = prev_value
         comp_arr[lab] = compensation_add
         nobs_arr[lab] = nobs
+
+        if not skipna and np.isnan(val):
+            output[lab] = val
+            comp_arr[lab] = 0
+            break
+
     return output, nobs_arr, comp_arr, consecutive_counts, prev_vals
 
 
@@ -219,20 +226,21 @@ def grouped_sum(
     labels: npt.NDArray[np.intp],
     ngroups: int,
     min_periods: int,
+    skipna: bool = True,
 ) -> tuple[np.ndarray, list[int]]:
     na_pos = []
 
     output, nobs_arr, comp_arr, consecutive_counts, prev_vals = grouped_kahan_sum(
-        values, result_dtype, labels, ngroups
+        values, result_dtype, labels, ngroups, skipna
     )
 
     # Post-processing, replace sums that don't satisfy min_periods
-    for lab in range(ngroups):
+    for lab in range(ngroups):  # labs = 0,1,2
         nobs = nobs_arr[lab]
         num_consecutive_same_value = consecutive_counts[lab]
         prev_value = prev_vals[lab]
         sum_x = output[lab]
-        if nobs >= min_periods:
+        if nobs >= min_periods and not np.isnan(sum_x):
             if num_consecutive_same_value >= nobs:
                 result = prev_value * nobs
             else:

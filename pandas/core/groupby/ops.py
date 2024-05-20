@@ -319,6 +319,7 @@ class WrappedCythonOp:
         comp_ids: np.ndarray,
         mask: npt.NDArray[np.bool_] | None = None,
         result_mask: npt.NDArray[np.bool_] | None = None,
+        skipna: bool = True,
         **kwargs,
     ) -> np.ndarray:
         if values.ndim == 1:
@@ -335,6 +336,7 @@ class WrappedCythonOp:
                 comp_ids=comp_ids,
                 mask=mask,
                 result_mask=result_mask,
+                skipna=skipna,
                 **kwargs,
             )
             if res.shape[0] == 1:
@@ -343,13 +345,14 @@ class WrappedCythonOp:
             # otherwise we have OHLC
             return res.T
 
-        return self._call_cython_op(
+        return self._call_cython_op(  ###REMINDER###
             values,
             min_count=min_count,
             ngroups=ngroups,
             comp_ids=comp_ids,
             mask=mask,
             result_mask=result_mask,
+            skipna=skipna,
             **kwargs,
         )
 
@@ -363,6 +366,7 @@ class WrappedCythonOp:
         comp_ids: np.ndarray,
         mask: npt.NDArray[np.bool_] | None,
         result_mask: npt.NDArray[np.bool_] | None,
+        skipna: bool = True,
         **kwargs,
     ) -> np.ndarray:  # np.ndarray[ndim=2]
         orig_values = values
@@ -427,6 +431,7 @@ class WrappedCythonOp:
                     mask=mask,
                     result_mask=result_mask,
                     is_datetimelike=is_datetimelike,
+                    checknull=skipna,
                     **kwargs,
                 )
             elif self.how in ["sem", "std", "var", "ohlc", "prod"]:
@@ -532,6 +537,7 @@ class WrappedCythonOp:
         min_count: int = -1,
         comp_ids: np.ndarray,
         ngroups: int,
+        skipna: bool = True,
         **kwargs,
     ) -> ArrayLike:
         """
@@ -539,7 +545,7 @@ class WrappedCythonOp:
         """
         self._validate_axis(axis, values)
 
-        if not isinstance(values, np.ndarray):
+        if not isinstance(values, np.ndarray):  ###REMINDER### Might be a missing Case
             # i.e. ExtensionArray
             return values._groupby_op(
                 how=self.how,
@@ -556,6 +562,7 @@ class WrappedCythonOp:
             ngroups=ngroups,
             comp_ids=comp_ids,
             mask=None,
+            skipna=skipna,
             **kwargs,
         )
 
@@ -892,6 +899,7 @@ class BaseGrouper:
         how: str,
         axis: AxisInt,
         min_count: int = -1,
+        skipna: bool = True,
         **kwargs,
     ) -> ArrayLike:
         """
@@ -907,6 +915,7 @@ class BaseGrouper:
             min_count=min_count,
             comp_ids=self.ids,
             ngroups=self.ngroups,
+            skipna=skipna,
             **kwargs,
         )
 
