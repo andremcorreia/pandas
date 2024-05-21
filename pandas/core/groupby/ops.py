@@ -419,8 +419,21 @@ class WrappedCythonOp:
                 "mean",
                 "last",
                 "first",
-                "sum",
                 "median",
+            ]:
+                func(
+                    out=result,
+                    counts=counts,
+                    values=values,
+                    labels=comp_ids,
+                    min_count=min_count,
+                    mask=mask,
+                    result_mask=result_mask,
+                    is_datetimelike=is_datetimelike,
+                    **kwargs,
+                )
+            if self.how in [
+                "sum",
             ]:
                 func(
                     out=result,
