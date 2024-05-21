@@ -3112,6 +3112,7 @@ class GroupBy(BaseGroupBy[NDFrameT]):
         self,
         numeric_only: bool = False,
         min_count: int = -1,
+        skipna: bool = True,
         engine: Literal["cython", "numba"] | None = None,
         engine_kwargs: dict[str, bool] | None = None,
     ):
@@ -3124,6 +3125,7 @@ class GroupBy(BaseGroupBy[NDFrameT]):
                 engine_kwargs,
                 min_periods=min_count,
                 is_max=False,
+                skipna=skipna,
             )
         else:
             return self._agg_general(
@@ -3131,6 +3133,7 @@ class GroupBy(BaseGroupBy[NDFrameT]):
                 min_count=min_count,
                 alias="min",
                 npfunc=np.min,
+                skipna=skipna,
             )
 
     @final
@@ -3180,6 +3183,7 @@ class GroupBy(BaseGroupBy[NDFrameT]):
         self,
         numeric_only: bool = False,
         min_count: int = -1,
+        skipna: bool = True,
         engine: Literal["cython", "numba"] | None = None,
         engine_kwargs: dict[str, bool] | None = None,
     ):
@@ -3192,6 +3196,7 @@ class GroupBy(BaseGroupBy[NDFrameT]):
                 engine_kwargs,
                 min_periods=min_count,
                 is_max=True,
+                skipna=skipna,
             )
         else:
             return self._agg_general(
@@ -3199,6 +3204,7 @@ class GroupBy(BaseGroupBy[NDFrameT]):
                 min_count=min_count,
                 alias="max",
                 npfunc=np.max,
+                skipna=skipna,
             )
 
     @final

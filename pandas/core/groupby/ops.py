@@ -414,8 +414,6 @@ class WrappedCythonOp:
             if self.how in [
                 "idxmin",
                 "idxmax",
-                "min",
-                "max",
                 "mean",
                 "last",
                 "first",
@@ -434,6 +432,8 @@ class WrappedCythonOp:
                 )
             if self.how in [
                 "sum",
+                "max",
+                "min",
             ]:
                 func(
                     out=result,

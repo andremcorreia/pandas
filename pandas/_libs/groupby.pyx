@@ -694,6 +694,7 @@ def group_sum(
     uint8_t[:, ::1] result_mask=None,
     Py_ssize_t min_count=0,
     bint is_datetimelike=False,
+    bint skipna=True,
 ) -> None:
     """
     Only aggregates on axis=0 using Kahan summation
@@ -733,32 +734,29 @@ def group_sum(
                 else:
                     isna_entry = _treat_as_na(val, is_datetimelike)
 
-                if not isna_entry:
-                    nobs[lab, j] += 1
+                if skipna and isna_entry:
+                    continue
 
-                    if sum_t is object:
-                        # NB: this does not use 'compensation' like the non-object
-                        #  track does.
-                        if nobs[lab, j] == 1:
-                            # i.e. we haven't added anything yet; avoid TypeError
-                            #  if e.g. val is a str and sumx[lab, j] is 0
-                            t = val
-                        else:
-                            t = sumx[lab, j] + val
-                        sumx[lab, j] = t
+                nobs[lab, j] += 1
 
+                if sum_t is object:
+                    if nobs[lab, j] == 1:
+                        t = val
                     else:
-                        y = val - compensation[lab, j]
-                        t = sumx[lab, j] + y
-                        compensation[lab, j] = t - sumx[lab, j] - y
-                        if compensation[lab, j] != compensation[lab, j]:
-                            # GH#53606
-                            # If val is +/- infinity compensation is NaN
-                            # which would lead to results being NaN instead
-                            # of +/- infinity. We cannot use util.is_nan
-                            # because of no gil
-                            compensation[lab, j] = 0
-                        sumx[lab, j] = t
+                        t = sumx[lab, j] + val
+                    sumx[lab, j] = t
+                else:
+                    y = val - compensation[lab, j]
+                    t = sumx[lab, j] + y
+                    compensation[lab, j] = t - sumx[lab, j] - y
+                    if compensation[lab, j] != compensation[lab, j]:
+                        compensation[lab, j] = 0
+                    sumx[lab, j] = t
+
+                if not skipna and isna_entry:
+                    sumx[lab, j] = val
+                    compensation[lab, j] = 0
+                    break
 
     _check_below_mincount(
         out, uses_mask, result_mask, ncounts, K, nobs, min_count, sumx
@@ -1660,6 +1658,7 @@ cdef group_min_max(
     Py_ssize_t min_count=-1,
     bint is_datetimelike=False,
     bint compute_max=True,
+    bint skipna=True,
     const uint8_t[:, ::1] mask=None,
     uint8_t[:, ::1] result_mask=None,
 ):
@@ -1728,6 +1727,10 @@ cdef group_min_max(
                     isna_entry = mask[i, j]
                 else:
                     isna_entry = _treat_as_na(val, is_datetimelike)
+
+                if not skipna and isna_entry:
+                    group_min_or_max[lab, j] = val
+                    break
 
                 if not isna_entry:
                     nobs[lab, j] += 1
@@ -1866,6 +1869,7 @@ def group_max(
     const intp_t[::1] labels,
     Py_ssize_t min_count=-1,
     bint is_datetimelike=False,
+    bint skipna=True,
     const uint8_t[:, ::1] mask=None,
     uint8_t[:, ::1] result_mask=None,
 ) -> None:
@@ -1880,6 +1884,7 @@ def group_max(
         compute_max=True,
         mask=mask,
         result_mask=result_mask,
+        skipna=skipna,
     )
 
 
@@ -1892,6 +1897,7 @@ def group_min(
     const intp_t[::1] labels,
     Py_ssize_t min_count=-1,
     bint is_datetimelike=False,
+    bint skipna=True,
     const uint8_t[:, ::1] mask=None,
     uint8_t[:, ::1] result_mask=None,
 ) -> None:
@@ -1906,6 +1912,7 @@ def group_min(
         compute_max=False,
         mask=mask,
         result_mask=result_mask,
+        skipna=skipna,
     )
 
 
