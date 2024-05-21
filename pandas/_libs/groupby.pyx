@@ -104,7 +104,8 @@ cdef float64_t median_linear_mask(float64_t* a, int n, uint8_t* mask) noexcept n
 cdef float64_t median_linear(
     float64_t* a,
     int n,
-    bint is_datetimelike=False
+    bint is_datetimelike=False,
+    bint skipna=True
 ) noexcept nogil:
     cdef:
         int i, j, na_count = 0
@@ -122,6 +123,8 @@ cdef float64_t median_linear(
     else:
         for i in range(n):
             if a[i] != a[i]:
+                if not skipna:
+                    return NaN
                 na_count += 1
 
     if na_count:
@@ -186,6 +189,7 @@ def group_median_float64(
     const uint8_t[:, :] mask=None,
     uint8_t[:, ::1] result_mask=None,
     bint is_datetimelike=False,
+    bint skipna=True,
 ) -> None:
     """
     Only aggregates on axis=0
@@ -244,7 +248,7 @@ def group_median_float64(
                 ptr += _counts[0]
                 for j in range(ngroups):
                     size = _counts[j + 1]
-                    out[j, i] = median_linear(ptr, size, is_datetimelike)
+                    out[j, i] = median_linear(ptr, size, is_datetimelike, skipna)
                     ptr += size
 
 
@@ -996,6 +1000,7 @@ def group_mean(
     const intp_t[::1] labels,
     Py_ssize_t min_count=-1,
     bint is_datetimelike=False,
+    bint skipna=True,
     const uint8_t[:, ::1] mask=None,
     uint8_t[:, ::1] result_mask=None,
 ) -> None:
@@ -1029,7 +1034,6 @@ def group_mean(
     This method modifies the `out` parameter rather than returning an object.
     `counts` is modified to hold group sizes
     """
-
     cdef:
         Py_ssize_t i, j, N, K, lab, ncounts = len(counts)
         mean_t val, count, y, t, nan_val
@@ -1090,16 +1094,19 @@ def group_mean(
                         compensation[lab, j] = 0.
                     sumx[lab, j] = t
 
+                elif not skipna:
+                    out[lab, j] = nan_val
+                    nobs[lab, j] = 0
+                    break
+
         for i in range(ncounts):
             for j in range(K):
                 count = nobs[i, j]
                 if nobs[i, j] == 0:
-
                     if uses_mask:
                         result_mask[i, j] = True
                     else:
                         out[i, j] = nan_val
-
                 else:
                     out[i, j] = sumx[i, j] / count
 

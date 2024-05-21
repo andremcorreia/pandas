@@ -1814,7 +1814,6 @@ class GroupBy(BaseGroupBy[NDFrameT]):
     def _cython_agg_general(
         self,
         how: str,
-        skipna: bool = True,
         alt: Callable | None = None,
         numeric_only: bool = False,
         min_count: int = -1,
@@ -1831,7 +1830,6 @@ class GroupBy(BaseGroupBy[NDFrameT]):
                     "aggregate",
                     values,
                     how,
-                    skipna=skipna,
                     axis=data.ndim - 1,
                     min_count=min_count,
                     **kwargs,
@@ -2231,6 +2229,7 @@ class GroupBy(BaseGroupBy[NDFrameT]):
     def mean(
         self,
         numeric_only: bool = False,
+        skipna: bool = True,
         engine: Literal["cython", "numba"] | None = None,
         engine_kwargs: dict[str, bool] | None = None,
     ):
@@ -2312,17 +2311,21 @@ class GroupBy(BaseGroupBy[NDFrameT]):
                 executor.float_dtype_mapping,
                 engine_kwargs,
                 min_periods=0,
+                skipna=skipna,
             )
         else:
             result = self._cython_agg_general(
                 "mean",
-                alt=lambda x: Series(x, copy=False).mean(numeric_only=numeric_only),
+                alt=lambda x: Series(x, copy=False).mean(
+                    skipna=skipna, numeric_only=numeric_only
+                ),
                 numeric_only=numeric_only,
+                skipna=skipna,
             )
             return result.__finalize__(self.obj, method="groupby")
 
     @final
-    def median(self, numeric_only: bool = False) -> NDFrameT:
+    def median(self, numeric_only: bool = False, skipna: bool = True) -> NDFrameT:
         """
         Compute median of groups, excluding missing values.
 
@@ -2403,8 +2406,11 @@ class GroupBy(BaseGroupBy[NDFrameT]):
         """
         result = self._cython_agg_general(
             "median",
-            alt=lambda x: Series(x, copy=False).median(numeric_only=numeric_only),
+            alt=lambda x: Series(x, copy=False).median(
+                skipna=skipna, numeric_only=numeric_only
+            ),
             numeric_only=numeric_only,
+            skipna=skipna,
         )
         return result.__finalize__(self.obj, method="groupby")
 
