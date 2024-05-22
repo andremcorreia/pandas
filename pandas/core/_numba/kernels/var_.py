@@ -176,6 +176,7 @@ def grouped_var(
     ngroups: int,
     min_periods: int,
     ddof: int = 1,
+    skipna: bool = True,
 ) -> tuple[np.ndarray, list[int]]:
     N = len(labels)
 
@@ -191,6 +192,10 @@ def grouped_var(
         val = values[i]
 
         if lab < 0:
+            continue
+
+        if not skipna and np.isnan(val):
+            output[lab] = val
             continue
 
         mean_x = means[lab]

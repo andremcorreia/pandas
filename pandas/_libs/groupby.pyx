@@ -838,6 +838,7 @@ def group_var(
     const uint8_t[:, ::1] mask=None,
     uint8_t[:, ::1] result_mask=None,
     bint is_datetimelike=False,
+    bint skipna=True,
     str name="var",
 ) -> None:
     cdef:
@@ -888,6 +889,8 @@ def group_var(
                     oldmean = mean[lab, j]
                     mean[lab, j] += (val - oldmean) / nobs[lab, j]
                     out[lab, j] += (val - mean[lab, j]) * (val - oldmean)
+                elif not skipna:
+                    out[lab, j] = val
 
         for i in range(ncounts):
             for j in range(K):
