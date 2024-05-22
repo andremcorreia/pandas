@@ -2317,7 +2317,8 @@ class GroupBy(BaseGroupBy[NDFrameT]):
             result = self._cython_agg_general(
                 "mean",
                 alt=lambda x: Series(x, copy=False).mean(
-                    skipna=skipna, numeric_only=numeric_only
+                    numeric_only=numeric_only,
+                    skipna=skipna,
                 ),
                 numeric_only=numeric_only,
                 skipna=skipna,
@@ -2407,7 +2408,7 @@ class GroupBy(BaseGroupBy[NDFrameT]):
         result = self._cython_agg_general(
             "median",
             alt=lambda x: Series(x, copy=False).median(
-                skipna=skipna, numeric_only=numeric_only
+                numeric_only=numeric_only, skipna=skipna
             ),
             numeric_only=numeric_only,
             skipna=skipna,
@@ -2423,6 +2424,7 @@ class GroupBy(BaseGroupBy[NDFrameT]):
         engine: Literal["cython", "numba"] | None = None,
         engine_kwargs: dict[str, bool] | None = None,
         numeric_only: bool = False,
+        skipna: bool = True,
     ):
         """
         Compute standard deviation of groups, excluding missing values.
@@ -2514,14 +2516,16 @@ class GroupBy(BaseGroupBy[NDFrameT]):
                     engine_kwargs,
                     min_periods=0,
                     ddof=ddof,
+                    skipna=skipna,
                 )
             )
         else:
             return self._cython_agg_general(
                 "std",
-                alt=lambda x: Series(x, copy=False).std(ddof=ddof),
+                alt=lambda x: Series(x, copy=False).std(ddof=ddof, skipna=skipna),
                 numeric_only=numeric_only,
                 ddof=ddof,
+                skipna=skipna,
             )
 
     @final
