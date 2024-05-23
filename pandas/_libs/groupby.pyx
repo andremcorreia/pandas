@@ -744,16 +744,26 @@ def group_sum(
                 nobs[lab, j] += 1
 
                 if sum_t is object:
+                    # NB: this does not use 'compensation' like the non-object
+                    #  track does.
                     if nobs[lab, j] == 1:
+                        # i.e. we haven't added anything yet; avoid TypeError
+                        #  if e.g. val is a str and sumx[lab, j] is 0
                         t = val
                     else:
                         t = sumx[lab, j] + val
                     sumx[lab, j] = t
+
                 else:
                     y = val - compensation[lab, j]
                     t = sumx[lab, j] + y
                     compensation[lab, j] = t - sumx[lab, j] - y
                     if compensation[lab, j] != compensation[lab, j]:
+                        # GH#53606
+                        # If val is +/- infinity compensation is NaN
+                        # which would lead to results being NaN instead
+                        # of +/- infinity. We cannot use util.is_nan
+                        # because of no gil
                         compensation[lab, j] = 0
                     sumx[lab, j] = t
 
