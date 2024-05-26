@@ -119,10 +119,12 @@ cdef float64_t median_linear(
     if is_datetimelike:
         for i in range(n):
             if a[i] == NPY_NAT:
+                if not skipna:
+                    return NaN
                 na_count += 1
     else:
         for i in range(n):
-            if a[i] != a[i]:
+            if a[i] != a[i]: 
                 if not skipna:
                     return NaN
                 na_count += 1
@@ -738,8 +740,13 @@ def group_sum(
                 else:
                     isna_entry = _treat_as_na(val, is_datetimelike)
 
-                if skipna and isna_entry:
-                    continue
+                if isna_entry:
+                    if skipna:
+                        continue
+                    else:
+                        sumx[lab, j] = val
+                        compensation[lab, j] = 0
+                        break
 
                 nobs[lab, j] += 1
 
@@ -766,11 +773,6 @@ def group_sum(
                         # because of no gil
                         compensation[lab, j] = 0
                     sumx[lab, j] = t
-
-                if not skipna and isna_entry:
-                    sumx[lab, j] = val
-                    compensation[lab, j] = 0
-                    break
 
     _check_below_mincount(
         out, uses_mask, result_mask, ncounts, K, nobs, min_count, sumx
@@ -1112,9 +1114,9 @@ def group_mean(
                     sumx[lab, j] = t
 
                 elif not skipna:
-                    out[lab, j] = nan_val
-                    nobs[lab, j] = 0
-                    break
+                    sumx[lab, j] = nan_val
+                    nobs[lab, j] = 0  
+                    break 
 
         for i in range(ncounts):
             for j in range(K):

@@ -11,7 +11,6 @@ from __future__ import annotations
 
 from collections.abc import (
     Hashable,
-    Iterable,
     Iterator,
     Mapping,
     Sequence,
@@ -759,7 +758,7 @@ class BaseGroupBy(PandasObject, SelectionMixin[NDFrameT], GroupByIndexingMixin):
                     )
                     raise ValueError(msg) from err
 
-            converters = (get_converter(s) for s in index_sample)
+            converters = [get_converter(s) for s in index_sample]
             names = (tuple(f(n) for f, n in zip(converters, name)) for name in names)
 
         else:
@@ -2327,7 +2326,11 @@ class GroupBy(BaseGroupBy[NDFrameT]):
             return result.__finalize__(self.obj, method="groupby")
 
     @final
-    def median(self, numeric_only: bool = False, skipna: bool = True) -> NDFrameT:
+    def median(
+        self, 
+        numeric_only: bool = False, 
+        skipna: bool = True
+    ) -> NDFrameT:
         """
         Compute median of groups, excluding missing values.
 
@@ -3078,7 +3081,10 @@ class GroupBy(BaseGroupBy[NDFrameT]):
         ),
     )
     def prod(
-        self, numeric_only: bool = False, min_count: int = 0, skipna: bool = True
+        self, 
+        numeric_only: bool = False, 
+        min_count: int = 0, 
+        skipna: bool = True
     ) -> NDFrameT:
         return self._agg_general(
             numeric_only=numeric_only,

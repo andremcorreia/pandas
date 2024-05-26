@@ -196,7 +196,8 @@ def grouped_var(
 
         if not skipna and np.isnan(val):
             output[lab] = val
-            continue
+            nobs_arr[lab] = 0
+            break
 
         mean_x = means[lab]
         ssqdm_x = output[lab]

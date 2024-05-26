@@ -190,7 +190,8 @@ def grouped_mean(
                 result = sum_x
         else:
             result = np.nan
-        result /= nobs
+        if nobs != 0:
+            result /= nobs
         output[lab] = result
 
     # na_position is empty list since float64 can already hold nans

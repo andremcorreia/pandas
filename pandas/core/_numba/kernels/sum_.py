@@ -213,7 +213,7 @@ def grouped_kahan_sum(
 
         if not skipna and np.isnan(val):
             output[lab] = val
-            comp_arr[lab] = 0
+            consecutive_counts[lab] = 0
             break
 
     return output, nobs_arr, comp_arr, consecutive_counts, prev_vals
